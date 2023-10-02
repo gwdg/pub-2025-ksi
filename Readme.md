@@ -1,6 +1,9 @@
 # Kubernetes Slurm Integration based on Kind
 
-This repository covers running Kubernetes workloads in a Slurm cluster. This approach uses Kind (Kubernetes in Docker) to set up temporary Kubernetes clusters. Kind supports rootless Podman that is a [valid choice for HPC use cases](https://www.redhat.com/en/blog/podman-paves-road-running-containerized-hpc-applications-exascale-supercomputers).
+This repository covers an approach to run Kubernetes workloads in a Slurm cluster. 
+This approach uses [Kind](https://github.com/kubernetes-sigs/kind) (Kubernetes in Docker) to set up temporary Kubernetes clusters. 
+Kind supports [rootless Podman](https://github.com/containers/podman/blob/main/docs/tutorials/rootless_tutorial.md) which is a [valid choice for HPC use cases](https://www.redhat.com/en/blog/podman-paves-road-running-containerized-hpc-applications-exascale-supercomputers).
+
 
 ## Prerequisites
 

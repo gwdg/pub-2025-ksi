@@ -26,17 +26,6 @@ then executes the Kubernetes workload (user-defined workload script), and finall
 It supports multi-tenant usage - so multiple users can create multiple clusters and can use them separately. 
 Also, a single user can create multiple Slurm jobs leading to multiple clusters in parallel on the same node.
 
-In general, the script can run without root privileges. 
-Also, the path too your Kubernetes workload script has to be passed as an argument:
-```bash
-/bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench.sh
-```
-
-To use Slurm to execute the workload run:
-```bash
-srun -N1 -c56 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench.sh
-```
-
 ### User-defined Workload Scripts
 As mentioned before, users can write scripts that describe the workload. Inside the script, `kubectl` is available for usage. 
 How can the right clusters be selected in case of multiple jobs? 
@@ -49,6 +38,18 @@ Otherwise, the cluster will be deleted without finishing the workload.
 #### Examples
 Workload script examples are included in the directory `example-workloads`: 
 - [workload-pod-sysbench.sh](example-workloads/workload-pod-sysbench.sh)
+
+### Usage
+In general, the script can run without root privileges.
+Also, the path to your Kubernetes workload script has to be passed as an argument:
+```bash
+/bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench.sh
+```
+
+To use Slurm to execute the workload run:
+```bash
+srun -N1 -c56 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench.sh
+```
 
 ## Script: Interactive Slurm Job
 

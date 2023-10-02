@@ -18,7 +18,7 @@ Kind supports [rootless Podman](https://github.com/containers/podman/blob/main/d
 
 The initial setup instructions to ensure the prerequisites can be found in [Setup.md](Setup.md).
 
-## Script: Batch Slurm Job
+## Script: Run Slurm Job
 The script [run-workload.sh](run-workload.sh) provides users the option to execute user-defined Kubernetes workloads as batch jobs on a Slurm cluster.
 Users can write custom Linux shell script that creates workloads using kubectl.
 The script [run-workload.sh](run-workload.sh) handles setting up a temporary Kubernetes cluster inside a container, 
@@ -51,7 +51,7 @@ To use Slurm to execute the workload run:
 srun -N1 -c56 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench.sh
 ```
 
-## Script: Interactive Slurm Job
+## Script: Start Interactive Slurm Job
 
 To set up an interactive Kubernetes cluster in a Slurm job run:
 

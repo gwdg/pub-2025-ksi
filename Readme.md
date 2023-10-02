@@ -13,7 +13,7 @@ This repository covers running Kubernetes workloads in a Slurm cluster. This app
 - Kind installed on all nodes
 - Kubectl installed on all nodes
 
-A pad with further instructions to install required software is available [here](https://pad.gwdg.de/9kSkGV-dTiyQ0kPdX50K0A?both#).
+Initial setup instructions to ensure the prerequisites and common issues can be found in [Setup.md](Setup.md).
 
 ## Script: Batch Slurm Job
 The script `slurm-kind.sh` provides users the option to execute user-defined Kubernetes workloads as batch jobs on a Slurm cluster.
@@ -26,12 +26,12 @@ Also, a single user can create multiple Slurm jobs leading to multiple clusters 
 In general, the script can run without root privileges. 
 Also, the path too your Kubernetes workload script has to be passed as an argument:
 ```bash
-/bin/bash slurm-kind.sh $PWD/example-workloads/workload-pod-sysbench.sh
+/bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench.sh
 ```
 
 To use Slurm to execute the workload run:
 ```bash
-srun -N1 -c56 /bin/bash slurm-kind.sh $PWD/example-workloads/workload-pod-sysbench.sh
+srun -N1 -c56 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench.sh
 ```
 
 ### User-defined Workload Scripts

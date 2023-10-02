@@ -16,9 +16,9 @@ This repository covers running Kubernetes workloads in a Slurm cluster. This app
 Initial setup instructions to ensure the prerequisites and common issues can be found in [Setup.md](Setup.md).
 
 ## Script: Batch Slurm Job
-The script `slurm-kind.sh` provides users the option to execute user-defined Kubernetes workloads as batch jobs on a Slurm cluster.
+The script `run-workload.sh` provides users the option to execute user-defined Kubernetes workloads as batch jobs on a Slurm cluster.
 Users can write a Linux shell script that creates workloads using kubectl.
-`slurm-kind.sh` handles setting up a temporary Kubernetes cluster inside a container, 
+`run-workload.sh` handles setting up a temporary Kubernetes cluster inside a container, 
 then executes the Kubernetes workload, and finally deletes the cluster when the workload is finished.
 It supports multi-tenant usage - multiple users can create multiple clusters and can use them separately. 
 Also, a single user can create multiple Slurm jobs leading to multiple clusters in parallel.

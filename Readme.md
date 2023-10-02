@@ -13,15 +13,15 @@ This repository covers running Kubernetes workloads in a Slurm cluster. This app
 - Kind installed on all nodes
 - Kubectl installed on all nodes
 
-Initial setup instructions to ensure the prerequisites and common issues can be found in [Setup.md](Setup.md).
+The initial setup instructions to ensure the prerequisites can be found in [Setup.md](Setup.md).
 
 ## Script: Batch Slurm Job
-The script `run-workload.sh` provides users the option to execute user-defined Kubernetes workloads as batch jobs on a Slurm cluster.
-Users can write a Linux shell script that creates workloads using kubectl.
-`run-workload.sh` handles setting up a temporary Kubernetes cluster inside a container, 
-then executes the Kubernetes workload, and finally deletes the cluster when the workload is finished.
-It supports multi-tenant usage - multiple users can create multiple clusters and can use them separately. 
-Also, a single user can create multiple Slurm jobs leading to multiple clusters in parallel.
+The script [run-workload.sh](run-workload.sh) provides users the option to execute user-defined Kubernetes workloads as batch jobs on a Slurm cluster.
+Users can write custom Linux shell script that creates workloads using kubectl.
+The script [run-workload.sh](run-workload.sh) handles setting up a temporary Kubernetes cluster inside a container, 
+then executes the Kubernetes workload (user-defined workload script), and finally deletes the cluster when the workload is finished.
+It supports multi-tenant usage - so multiple users can create multiple clusters and can use them separately. 
+Also, a single user can create multiple Slurm jobs leading to multiple clusters in parallel on the same node.
 
 In general, the script can run without root privileges. 
 Also, the path too your Kubernetes workload script has to be passed as an argument:
@@ -40,11 +40,12 @@ How can the right clusters be selected in case of multiple jobs?
 During creating the Kubernetes cluster a random name is picked for the cluster. 
 This name is available in the workload script through the variable `K8S_CLUSTER_NAME` and can be used in `kubectl` to reference the correct cluster e.g. `kubectl get pods --context "$K8S_CLUSTER_NAME"`. 
 
-Another important part of a workload script is that it also waits for the workloads to be completed (e.g. by using kubectl wait). 
+Another important part of a workload script is that it also **waits for the workloads to be completed** (e.g. by using kubectl wait). 
 Otherwise, the cluster will be deleted without finishing the workload.
 
 #### Examples
-Have a look at the scripts in the directory `example-workloads` e.g. [workload-pod-sysbench.sh](example-workloads/workload-pod-sysbench.sh)
+Workload script examples are included in the directory `example-workloads`: 
+- [workload-pod-sysbench.sh](example-workloads/workload-pod-sysbench.sh)
 
 ## Script: Interactive Slurm Job
 

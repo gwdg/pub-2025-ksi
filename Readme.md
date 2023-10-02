@@ -1,6 +1,6 @@
-# Slurm Kubernetes Integration based on Kind
+# Kubernetes Slurm Integration based on Kind
 
-This repository covers our approach for integrating Kubernetes and Slurm. This approach uses Kind (Kubernetes in Docker). Kind supports rootless Podman that is a valid choice for HPC use cases.
+This repository covers running Kubernetes workloads in a Slurm cluster. This approach uses Kind (Kubernetes in Docker) to set up temporary Kubernetes clusters. Kind supports rootless Podman that is a [valid choice for HPC use cases](https://www.redhat.com/en/blog/podman-paves-road-running-containerized-hpc-applications-exascale-supercomputers).
 
 ## Prerequisites
 
@@ -12,6 +12,8 @@ This repository covers our approach for integrating Kubernetes and Slurm. This a
 - Podman and slirp4netns installed on all nodes
 - Kind installed on all nodes
 - Kubectl installed on all nodes
+
+A pad with further instructions to install required software is available [here](https://pad.gwdg.de/9kSkGV-dTiyQ0kPdX50K0A?both#).
 
 ## Script: Batch Slurm Job
 The script `slurm-kind.sh` provides users the option to execute user-defined Kubernetes workloads as batch jobs on a Slurm cluster.

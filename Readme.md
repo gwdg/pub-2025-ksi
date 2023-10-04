@@ -3,7 +3,7 @@
 This repository covers an approach to run Kubernetes workloads in a Slurm cluster. 
 This approach uses [Kind](https://github.com/kubernetes-sigs/kind) (Kubernetes in Docker) to set up temporary Kubernetes clusters. 
 Kind supports [rootless Podman](https://github.com/containers/podman/blob/main/docs/tutorials/rootless_tutorial.md) which is a [valid choice for HPC use cases](https://www.redhat.com/en/blog/podman-paves-road-running-containerized-hpc-applications-exascale-supercomputers).
-
+This project is part of my master’s thesis of investigating approaches to run Kubernetes workloads in a Slurm cluster.
 
 ## Prerequisites
 
@@ -44,6 +44,10 @@ In general, the script can run without root privileges.
 Also, the path to your Kubernetes workload script has to be passed as an argument:
 ```bash
 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench.sh
+```
+To store the stdout and stderr in a file you can add following `tee` command:
+```bash
+/bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench.sh |& tee log.txt
 ```
 
 To use Slurm to execute the workload run:

@@ -38,6 +38,7 @@ Otherwise, the cluster will be deleted without finishing the workload.
 #### Examples
 Workload script examples are included in the directory `example-workloads`: 
 - [workload-pod-sysbench.sh](example-workloads/workload-pod-sysbench.sh)
+- [workload-job-pytorch.sh](example-workloads/workload-job-pytorch.sh)
 
 ### Usage
 In general, the script can run without root privileges.

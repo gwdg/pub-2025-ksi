@@ -42,7 +42,7 @@ Workload script examples are included in the directory `example-workloads`:
 
 ### Usage
 In general, the script can run without root privileges.
-Also, the path to your Kubernetes workload script has to be passed as an argument:
+Also, the path to your Kubernetes workload script has to be passed as an argument. Here, the script [workload-pod-sysbench.sh](example-workloads/workload-pod-sysbench.sh) is used as an example:
 ```bash
 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench.sh
 ```

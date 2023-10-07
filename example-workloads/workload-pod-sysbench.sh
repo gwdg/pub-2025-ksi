@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x # Print each command before execution
 
 kubectl create --context "$K8S_CLUSTER_NAME" namespace bench
 # Create workload as pods of jobs

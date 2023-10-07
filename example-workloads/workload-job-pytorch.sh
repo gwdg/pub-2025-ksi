@@ -1,6 +1,7 @@
 #!/bin/bash
 # Source: https://github.com/soerenmetje/kubernetes-pytorch
 
+set -x # Print each command before execution
 
 if [ ! -d "kubernetes-pytorch" ]; then
   echo "kubernetes-pytorch directory does not exist. Cloning repository first..."

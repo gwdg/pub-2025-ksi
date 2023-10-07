@@ -65,17 +65,15 @@ fi
 # Create kind kubernetes cluster ------------------------
 cluster_name="$(uuidgen | tr -d '-' | head -c5)"
 
+# https://kind.sigs.k8s.io/docs/user/rootless/
+# https://kind.sigs.k8s.io/docs/user/quick-start/
+# kind-config.yaml contains a mapping for the current directory into the `/app` directory inside the cluster container.
 if [[ "$NAME" == "CentOS Stream" && "$VERSION_ID" = "8" ]]; then
   # On some distributions, you might need to use systemd-run to start kind into its own cgroup scope:
-  KIND_EXPERIMENTAL_PROVIDER=podman systemd-run --scope --user kind create cluster --name "$cluster_name"
+  KIND_EXPERIMENTAL_PROVIDER=podman systemd-run --scope --user kind create cluster --name "$cluster_name" --wait 5m --config ./kind-config.yaml
 else
-  # https://kind.sigs.k8s.io/docs/user/rootless/
-  # https://kind.sigs.k8s.io/docs/user/quick-start/
-  KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster --name "$cluster_name"
+  KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster --name "$cluster_name" --wait 5m --config ./kind-config.yaml
 fi
-
-# Wait until all (here one) Kubernetes nodes are ready (otherwise following commands would fail)
-kubectl wait --context "kind-$cluster_name" --for=condition=Ready nodes --all --timeout=600s
 
 # Test kubectl and cluster
 kubectl get nodes --context "kind-$cluster_name"

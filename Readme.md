@@ -21,10 +21,15 @@ The initial setup instructions to ensure the prerequisites can be found in [Setu
 ## Script: Run Slurm Job
 The script [run-workload.sh](run-workload.sh) provides users the option to execute user-defined Kubernetes workloads as batch jobs on a Slurm cluster.
 Users can write custom Linux shell script that creates workloads using kubectl.
-The script [run-workload.sh](run-workload.sh) handles setting up a temporary Kubernetes cluster inside a container, 
+The script [run-workload.sh](run-workload.sh) handles setting up a temporary Kubernetes cluster inside a container using [Kind](https://github.com/kubernetes-sigs/kind), 
 then executes the Kubernetes workload (user-defined workload script), and finally deletes the cluster when the workload is finished.
 It supports multi-tenant usage - so multiple users can create multiple clusters and can use them separately. 
 Also, a single user can create multiple Slurm jobs leading to multiple clusters in parallel on the same node.
+
+
+The Kubernetes cluster container shares the current working directory of the host machine. 
+Inside the container it is available in `/app`. 
+The script [workload-job-pytorch.sh](example-workloads/workload-job-pytorch.sh) gives an example on how the shared directory may be used.
 
 ### User-defined Workload Scripts
 As mentioned before, users can write scripts that describe the workload. Inside the script, `kubectl` is available for usage. 

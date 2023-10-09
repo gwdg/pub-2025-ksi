@@ -36,7 +36,7 @@ spec:
       volumes:
         - name: project-vol
           hostPath:
-            path: /app/kubernetes-pytorch
+            path: /app/example-workloads/workload-job-pytorch
             type: Directory
 EOF
 # wait for training to finish

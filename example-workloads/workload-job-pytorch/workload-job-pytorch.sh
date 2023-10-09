@@ -3,6 +3,7 @@
 
 set -x # Print each command before execution
 
+# Clone an repository that contains an example PyTorch project
 if [ ! -d "kubernetes-pytorch" ]; then
   echo "kubernetes-pytorch directory does not exist. Cloning repository first..."
   git clone https://github.com/soerenmetje/kubernetes-pytorch.git
@@ -24,7 +25,7 @@ spec:
   template:
     spec:
       securityContext:
-        runAsUser: $UID
+        runAsUser: 0
       containers:
       - name: pytorch
         image: bitnami/pytorch:2.0.1

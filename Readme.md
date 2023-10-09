@@ -29,7 +29,7 @@ Also, a single user can create multiple Slurm jobs leading to multiple clusters 
 
 The Kubernetes cluster container shares the current working directory of the host machine. 
 Inside the container it is available in `/app`. 
-The script [workload-job-pytorch.sh](example-workloads/workload-job-pytorch.sh) gives an example on how the shared directory may be used.
+The script [workload-job-pytorch.sh](example-workloads/workload-job-pytorch/workload-job-pytorch.sh) gives an example on how the shared directory may be used.
 
 ### User-defined Workload Scripts
 As mentioned before, users can write scripts that describe the workload. Inside the script, `kubectl` is available for usage. 
@@ -42,23 +42,23 @@ Otherwise, the cluster will be deleted without finishing the workload.
 
 #### Examples
 Workload script examples are included in the directory `example-workloads`: 
-- [workload-pod-sysbench.sh](example-workloads/workload-pod-sysbench.sh)
-- [workload-job-pytorch.sh](example-workloads/workload-job-pytorch.sh)
+- [workload-pod-sysbench.sh](example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh)
+- [workload-job-pytorch.sh](example-workloads/workload-job-pytorch/workload-job-pytorch.sh)
 
 ### Usage
 In general, the script can run without root privileges.
-Also, the path to your Kubernetes workload script has to be passed as an argument. Here, the script [workload-pod-sysbench.sh](example-workloads/workload-pod-sysbench.sh) is used as an example:
+Also, the path to your Kubernetes workload script has to be passed as an argument. Here, the script [workload-pod-sysbench.sh](example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh) is used as an example:
 ```bash
-/bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench.sh
+/bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh
 ```
 To store the stdout and stderr in a file you can add following `tee` command:
 ```bash
-/bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench.sh |& tee log.txt
+/bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh |& tee log.txt
 ```
 
 To use Slurm to execute the workload run:
 ```bash
-srun -N1 -c56 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench.sh
+srun -N1 -c56 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh
 ```
 
 ## Script: Start Interactive Slurm Job

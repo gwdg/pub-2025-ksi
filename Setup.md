@@ -2,6 +2,22 @@
 Install required software for Kind on Podman. Run following commands as `root` user, unless stated otherwise.
 This instruction aims for RHEL 9 based x86 distros and is tested with CentOS Stream 9.
 
+## Test Setup Versions
+We tested this setup with following software versions. 
+These are the latest versions at the time of developing this project.
+Potentially, newer versions should also work.
+
+| Software    | Version                             | Comment                                        |
+|-------------|-------------------------------------|------------------------------------------------|
+| Linux OS    | CentOS Stream 9                     | Older Linux distros may not support cgroups v2 |
+| Slurm       | slurm 23.02.5                       |                                                |
+| Podman      | podman version 4.6.1                |                                                |
+| slirp4netns | slirp4netns 1.2.2-1                 |                                                |
+| Kind        | kind version 0.20.0                 |                                                |
+| Kubectl     | Client Version: v1.28.2             |                                                |
+| Bash        | GNU bash, version 5.1.8(1)-release  |                                                |
+
+
 ## Check cgroups v2 enabled
 ```bash
 # Source: https://unix.stackexchange.com/a/480748/567139

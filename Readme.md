@@ -7,7 +7,7 @@ This project is part of my master’s thesis of investigating approaches to run 
 
 ## Prerequisites
 
-- All nodes run RHEL 9 based x86 distro (tested with CentOS Stream 9)
+- All nodes run a RHEL 9 based x86 distro
 - cgroups v2 enabled on all nodes
 - CPU delegation enabled on all nodes
 - Slurm cluster up and running

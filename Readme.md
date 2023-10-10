@@ -47,7 +47,7 @@ Workload script examples are included in the directory `example-workloads`:
 
 ### Usage
 In general, the script can run without root privileges.
-Also, the path to your Kubernetes workload script has to be passed as an argument. Here, the script [workload-pod-sysbench.sh](example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh) is used as an example:
+Also, the path to your Kubernetes workload script has to be passed as an argument. Here, the script [workload-pod-sysbench.sh](example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh) is used as an example. Run the following command from the project root directory:
 ```bash
 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh
 ```
@@ -100,4 +100,48 @@ KIND_EXPERIMENTAL_PROVIDER=podman kind delete cluster --name "cluster_name"
 or for some distributions, you might need to use systemd-run to start kind into its own cgroup scope
 ```bash
 KIND_EXPERIMENTAL_PROVIDER=podman systemd-run --scope --user kind delete cluster --name "cluster_name"
+```
+
+## Common Errors
+### PermissionError: [Errno 13] Permission Denied
+Inside a Kubernetes pod or job, a permission denied error may occur. This usually means that the user is has no permissions to access a file or directory.  
+A cause for this may be the directory mapping in the kind config [kind-config.yaml](kind-config.yaml) or the (un)set user in the pod or job.
+
+Some container images may have set up a non-root user, that executes the application inside the container.
+This fact can lead to the error mentioned above.
+To solve this, explicitly set the user in the Kubernetes pod to root by adding:
+```yaml
+spec:
+  # ...
+  securityContext:
+    runAsUser: 0
+  # ...
+```
+
+To debug this you may run:
+```bash
+kubectl create -f - <<EOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: alpine
+spec:
+  securityContext:
+    runAsUser: 0
+  containers:
+  - name: alpine
+    image: alpine
+    command: ['ls', '-aln', '/app']
+    volumeMounts:
+      - name: project-vol
+        mountPath: /app
+  restartPolicy: OnFailure
+  volumes:
+    - name: project-vol
+      hostPath:
+        path: /app
+        type: Directory
+EOF
+
+kubectl logs pod/alpine
 ```

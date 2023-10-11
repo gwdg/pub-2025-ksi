@@ -1,21 +1,22 @@
 # Initial Setup
 Install required software for Kind on Podman. Run following commands as `root` user, unless stated otherwise.
-This instruction aims for RHEL 9 based x86 distros and is tested with CentOS Stream 9.
+This instruction aims for RHEL 9 based x86 distros and is tested with CentOS Stream 9 (SELinux disabled).
 
 ## Test Setup Versions
 We tested this setup with following software versions. 
 These are the latest versions at the time of developing this project.
 Potentially, newer versions should also work.
 
-| Software    | Version                             | Comment                                        |
-|-------------|-------------------------------------|------------------------------------------------|
-| Linux OS    | CentOS Stream 9                     | Older Linux distros may not support cgroups v2 |
-| Slurm       | slurm 23.02.5                       |                                                |
-| Podman      | podman version 4.6.1                |                                                |
-| slirp4netns | slirp4netns 1.2.2-1                 |                                                |
-| Kind        | kind version 0.20.0                 |                                                |
-| Kubectl     | Client Version: v1.28.2             |                                                |
-| Bash        | GNU bash, version 5.1.8(1)-release  |                                                |
+| Software      | Version                            | Comment                                        |
+|---------------|------------------------------------|------------------------------------------------|
+| Linux OS      | CentOS Stream 9                    | Older Linux distros may not support cgroups v2 |
+| Slurm         | slurm 23.02.5                      |                                                |
+| Podman        | podman version 4.6.1               |                                                |
+| slirp4netns   | slirp4netns 1.2.2-1                | Enables rootless container networking          |
+| Kind          | kind version 0.20.0                |                                                |
+| Kubectl       | Client Version: v1.28.2            |                                                |
+| shadow-utils  | shadow-utils 2:4.9-8               | Enables usage of `newuidmap` and `newgidmap`   |
+| Bash          | GNU bash, version 5.1.8(1)-release |                                                |
 
 
 ## Check cgroups v2 enabled
@@ -25,7 +26,6 @@ if [ "$(stat -fc %T /sys/fs/cgroup/)" = "cgroup2fs" ]; then
     echo "cgroups v2 check passed: cgroups v2 is enabled"
 else
     echo "cgroups v2 check failed: cgroups v2 is not enabled" >&2
-    exit 3
 fi
 ```
 ### Enable cgroups v2
@@ -63,7 +63,8 @@ echo "user.max_user_namespaces=28633" > /etc/sysctl.d/userns.conf
 sysctl -p /etc/sysctl.d/userns.conf
 ```
 
-## Install newuidmap and newgidmap
+## Install shadow-utils
+shadow-utils enables usage of newuidmap and newgidmap
 ```bash
 # Source: https://rootlesscontaine.rs/getting-started/common/subuid/
 dnf install -y shadow-utils

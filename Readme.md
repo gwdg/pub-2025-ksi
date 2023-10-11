@@ -6,15 +6,22 @@ Kind supports [rootless Podman](https://github.com/containers/podman/blob/main/d
 This project is part of my master’s thesis of investigating approaches to run Kubernetes workloads in a Slurm cluster.
 
 ## Prerequisites
+First, the Slurm cluster has to be up and running. 
+This project aims for RHEL 9 x86 distributions, but may work on other RHEL distributions as well.
+Apart from that, all nodes have to have certain software installed:
 
-- All nodes run a RHEL 9 based x86 distro
-- cgroups v2 enabled on all nodes
-- CPU delegation enabled on all nodes
-- Slurm cluster up and running
-- Bash installed on all nodes
-- Podman and slirp4netns installed on all nodes
-- Kind installed on all nodes
-- Kubectl installed on all nodes
+- Bash
+- Podman 
+- slirp4netns
+- Kind
+- Kubectl
+- shadow-utils
+
+Also, all nodes must ensure certain configurations:
+- cgroups v2 is enabled
+- CPU delegation is enabled
+- Modules `ip6_tables`, `ip6table_nat`, `ip_tables`,  `iptable_nat` are loaded
+- Variable `user.max_user_namespaces` is set to 28633
 
 The initial setup instructions to ensure the prerequisites can be found in [Setup.md](Setup.md).
 

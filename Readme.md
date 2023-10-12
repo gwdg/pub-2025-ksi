@@ -40,12 +40,15 @@ The script [workload-job-pytorch.sh](example-workloads/workload-job-pytorch/work
 
 ### User-defined Workload Scripts
 As mentioned before, users can write scripts that describe the workload. Inside the script, `kubectl` is available for usage. 
-How can the right clusters be selected in case of multiple jobs? 
+How can the right clusters be selected in case of multiple Slurm jobs? 
 During creating the Kubernetes cluster a random name is picked for the cluster. 
-This name is available in the workload script through the variable `K8S_CLUSTER_NAME` and can be used in `kubectl` to reference the correct cluster e.g. `kubectl get pods --context "$K8S_CLUSTER_NAME"`. 
+This name is available in the workload script through the variable `K8S_CLUSTER_NAME` and can be used in `kubectl` to reference the correct cluster e.g. `kubectl get jobs --context "$K8S_CLUSTER_NAME"`. 
 
-Another important part of a workload script is that it also **waits for the workloads to be completed** (e.g. by using kubectl wait). 
-Otherwise, the cluster will be deleted without finishing the workload.
+To create Kubernetes resources, one can utilize `kubectl create --context "$K8S_CLUSTER_NAME"` followed by the resource just as in normal Kubernetes clusters.
+Another important part of a workload script is that it also **waits for the workloads to be completed** (e.g. by using `kubectl wait --context "$K8S_CLUSTER_NAME"`). 
+Otherwise, the cluster will be deleted without finishing the workload first.
+Generally, it is a clean practice to delete the resources in a last step.
+However, this is not strictly necessary due to the fact that the whole Kubernetes cluster is deleted in the end.
 
 #### Examples
 
@@ -86,9 +89,9 @@ kubectl delete --context "$K8S_CLUSTER_NAME" namespace example
 ```
 
 Further examples of workload scripts are included in the directory `example-workloads`: 
-- [workload-pod-sysbench.sh](example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh)
-- [workload-job-pytorch.sh](example-workloads/workload-job-pytorch/workload-job-pytorch.sh)
-- [workload-yaml.sh](example-workloads/workload-yaml/workload-yaml.sh)
+- [workload-pod-sysbench.sh](example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh): Runs a CPU benchmark. Gives also an example on how pods can be utilized, although it could also be implemented using a job. 
+- [workload-job-pytorch.sh](example-workloads/workload-job-pytorch/workload-job-pytorch.sh): Runs a PyTorch training and stores the resulting model on the node in the directory `./kubernetes-pytorch/out/`
+- [workload-yaml.sh](example-workloads/workload-yaml/workload-yaml.sh): Runs a hello-world job defined in a `yaml` file
 
 ### Usage
 In general, the script can run without root privileges.

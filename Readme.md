@@ -48,7 +48,44 @@ Another important part of a workload script is that it also **waits for the work
 Otherwise, the cluster will be deleted without finishing the workload.
 
 #### Examples
-Workload script examples are included in the directory `example-workloads`: 
+
+Following workload script is a minimal example:
+```bash
+# Create workloads
+kubectl create --context "$K8S_CLUSTER_NAME" namespace example
+kubectl create --context "$K8S_CLUSTER_NAME" -n example -f - <<EOF
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hello
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsUser: 0
+      containers:
+      - name: hello
+        image: alpine
+        command: ['echo', 'hello world']
+        volumeMounts:
+          - name: project-vol
+            mountPath: /app
+      restartPolicy: OnFailure
+      volumes:
+        - name: project-vol
+          hostPath:
+            path: /app
+            type: Directory
+EOF
+# Wait for workloads to finish
+kubectl wait --context "$K8S_CLUSTER_NAME" -n example --for=condition=complete --timeout=10h job/hello 
+# Print workload logs
+kubectl logs --context "$K8S_CLUSTER_NAME" -n example job/hello
+# Delete workloads
+kubectl delete --context "$K8S_CLUSTER_NAME" namespace example
+```
+
+Further examples of workload scripts are included in the directory `example-workloads`: 
 - [workload-pod-sysbench.sh](example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh)
 - [workload-job-pytorch.sh](example-workloads/workload-job-pytorch/workload-job-pytorch.sh)
 - [workload-yaml.sh](example-workloads/workload-yaml/workload-yaml.sh)

@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hello
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsUser: 0
+      containers:
+        - name: hello
+          image: alpine
+          command: ['echo', 'hello world']
+          volumeMounts:
+            - name: project-vol
+              mountPath: /app
+      restartPolicy: OnFailure
+      volumes:
+        - name: project-vol
+          hostPath:
+            path: /app
+            type: Directory

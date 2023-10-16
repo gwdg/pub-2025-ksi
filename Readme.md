@@ -1,7 +1,7 @@
-# Kubernetes Slurm Integration based on Kind
+# Kind Slurm Integration (KSI)
 
 This repository covers an approach to run Kubernetes workloads in a Slurm cluster. 
-This approach uses [Kind](https://github.com/kubernetes-sigs/kind) (Kubernetes in Docker) to set up temporary Kubernetes clusters. 
+The approach uses [Kind](https://github.com/kubernetes-sigs/kind) (Kubernetes in Docker) to set up temporary Kubernetes clusters. 
 Kind supports [rootless Podman](https://github.com/containers/podman/blob/main/docs/tutorials/rootless_tutorial.md) which is a [valid choice for HPC use cases](https://www.redhat.com/en/blog/podman-paves-road-running-containerized-hpc-applications-exascale-supercomputers).
 This project is part of my master’s thesis of investigating approaches to run Kubernetes workloads in a Slurm cluster.
 
@@ -101,7 +101,7 @@ Run the following command from the project root directory to use Slurm to execut
 ```bash
 srun -N1 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh
 ```
-> To utilize the full compute power of a machine, additional Slurm arguments may be needed. Following arguments allow the job to use 56 CPU cores: `srun -N1 -c56`
+> To utilize the full compute power of a machine, additional Slurm arguments may be needed. The following arguments allow the job to use 56 CPU cores: `srun -N1 -c56`
 
 In fact, the script can also operate without Slurm:
 ```bash

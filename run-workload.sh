@@ -93,8 +93,40 @@ fi
 kubectl get nodes --context "kind-$cluster_name"
 kubectl cluster-info --context "kind-$cluster_name"
 
+K8S_CLUSTER_NAME="kind-$cluster_name"
+# Source: https://collabnix.github.io/kubelabs/api.html
+K8S_CLUSTER_API=$(kubectl config view -o jsonpath="{.clusters[?(@.name=='$K8S_CLUSTER_NAME')].cluster.server}")
+
+# Create ServiceAccount and ClusterRoleBinding to enable admin access
+# Existing SA such as kube-system:default seem to have only restricted access in Kind clusters
+# Source: https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md
+kubectl --context "$K8S_CLUSTER_NAME" create -f -  <<EOF
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kube-system
+EOF
+kubectl --context "$K8S_CLUSTER_NAME" create -f -  <<EOF
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kube-system
+EOF
+# Source: https://iximiuz.com/en/posts/kubernetes-api-call-simple-http-client/
+# Kubernetes 1.24+
+K8S_CLUSTER_API_TOKEN=$(kubectl --context "$K8S_CLUSTER_NAME" -n kube-system create token admin-user)
+
 # Run Kubernetes Workload ------------------------
 echo "Executing the Kubernetes workload script $1 on cluster kind-$cluster_name"
-K8S_CLUSTER_NAME="kind-$cluster_name" /bin/bash "$1"
+K8S_CLUSTER_NAME=$K8S_CLUSTER_NAME K8S_CLUSTER_API=$K8S_CLUSTER_API K8S_CLUSTER_API_TOKEN=$K8S_CLUSTER_API_TOKEN /bin/bash "$1"
 
 # Deleting cluster is handled in cleanup function

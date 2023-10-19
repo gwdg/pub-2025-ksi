@@ -51,6 +51,8 @@ Otherwise, the cluster will be deleted without finishing the workload first.
 Generally, it is a clean practice to delete the resources in a last step.
 However, this is not strictly necessary due to the fact that the whole Kubernetes cluster is deleted in the end.
 
+In workload scripts, the Kubernetes cluster can also be accessed by the Kubernetes REST API. For this use case, two environment variables are provided: `$K8S_CLUSTER_API` amd `$K8S_CLUSTER_API_TOKEN`. The file [workload-kube-api.sh](example-workloads/workload-access-api/workload-kube-api.sh) provides an example. The token grants access to the service account `admin-user`, which has bound the role `cluster-admin`.
+
 #### Examples
 
 Following workload script is a minimal example:
@@ -93,6 +95,7 @@ Further examples of workload scripts are included in the directory `example-work
 - [workload-pod-sysbench.sh](example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh): Runs a CPU benchmark. Gives also an example on how pods can be utilized, although it could also be implemented using a job. 
 - [workload-job-pytorch.sh](example-workloads/workload-job-pytorch/workload-job-pytorch.sh): Runs a PyTorch training and stores the resulting model on the node in the directory `./kubernetes-pytorch/out/`
 - [workload-yaml.sh](example-workloads/workload-yaml/workload-yaml.sh): Runs a hello-world job defined in a `yaml` file
+- [workload-kube-api.sh](example-workloads/workload-access-api/workload-kube-api.sh): Queries the Kubernetes REST API using curl
 
 ### Usage
 In general, the script can run without root privileges.

@@ -65,6 +65,20 @@ fi
 # Create kind kubernetes cluster ------------------------
 cluster_name="$(uuidgen | tr -d '-' | head -c5)"
 
+function cleanup () {
+  echo "Deleting Kind cluster container $cluster_name"
+  # Delete kind Kubernetes cluster ------------------------
+  if [[ "$NAME" == "CentOS Stream" && "$VERSION_ID" = "8" ]]; then
+    # On some distributions, you might need to use systemd-run to start kind into its own cgroup scope
+    KIND_EXPERIMENTAL_PROVIDER=podman systemd-run --scope --user kind delete cluster --name "$cluster_name"
+  else
+      # https://kind.sigs.k8s.io/docs/user/quick-start/
+    KIND_EXPERIMENTAL_PROVIDER=podman kind delete cluster --name "$cluster_name"
+  fi
+}
+trap cleanup EXIT # Normal Exit
+trap cleanup SIGTERM # Termination from Slurm and CTRL + C
+
 # https://kind.sigs.k8s.io/docs/user/rootless/
 # https://kind.sigs.k8s.io/docs/user/quick-start/
 # kind-config.yaml contains a mapping for the current directory into the `/app` directory inside the cluster container.
@@ -83,11 +97,4 @@ kubectl cluster-info --context "kind-$cluster_name"
 echo "Executing the Kubernetes workload script $1 on cluster kind-$cluster_name"
 K8S_CLUSTER_NAME="kind-$cluster_name" /bin/bash "$1"
 
-# Delete kind Kubernetes cluster ------------------------
-if [[ "$NAME" == "CentOS Stream" && "$VERSION_ID" = "8" ]]; then
-  # On some distributions, you might need to use systemd-run to start kind into its own cgroup scope
-  KIND_EXPERIMENTAL_PROVIDER=podman systemd-run --scope --user kind delete cluster --name "$cluster_name"
-else
-    # https://kind.sigs.k8s.io/docs/user/quick-start/
-  KIND_EXPERIMENTAL_PROVIDER=podman kind delete cluster --name "$cluster_name"
-fi
+# Deleting cluster is handled in cleanup function

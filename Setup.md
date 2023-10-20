@@ -57,11 +57,8 @@ EOF
 ```
 
 ## Enable User Namespaces
-```bash
-# Source: https://rootlesscontaine.rs/getting-started/common/sysctl/
-echo "user.max_user_namespaces=28633" > /etc/sysctl.d/userns.conf
-sysctl -p /etc/sysctl.d/userns.conf
-```
+> Since RHEL 8, the configuration `echo "user.max_user_namespaces=28633" > /etc/sysctl.d/userns.conf` is not required anymore. 
+> This was needed for RHEL 7. Source: https://rootlesscontaine.rs/getting-started/common/sysctl/
 
 ## Install shadow-utils
 shadow-utils enables usage of newuidmap and newgidmap

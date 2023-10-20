@@ -20,8 +20,7 @@ Apart from that, all nodes have to have certain software installed:
 Also, all nodes must ensure certain configurations:
 - cgroups v2 is enabled
 - CPU delegation is enabled
-- Modules `ip6_tables`, `ip6table_nat`, `ip_tables`,  `iptable_nat` are loaded
-- Variable `user.max_user_namespaces` is set to 28633
+- Kernel modules `ip6_tables`, `ip6table_nat`, `ip_tables`,  `iptable_nat` are loaded
 
 The initial setup instructions to ensure the prerequisites can be found in [Setup.md](Setup.md).
 

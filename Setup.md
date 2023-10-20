@@ -46,6 +46,7 @@ systemctl daemon-reload
 > Accrording to [Kind documentation](https://kind.sigs.k8s.io/docs/user/rootless/#host-requirements), this is not enabled by default because “the runtime impact of [delegating the “cpu” controller] is still too high”. Beware that changing this configuration may affect system performance.
 
 ## Enable Networking
+Enable loading following Linux kernel modules:
 ```bash
 # Source: https://kind.sigs.k8s.io/docs/user/rootless/#host-requirements
 cat >/etc/modules-load.d/iptables.conf <<EOF

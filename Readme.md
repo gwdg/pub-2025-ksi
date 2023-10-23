@@ -5,6 +5,9 @@ The approach uses [Kind](https://github.com/kubernetes-sigs/kind) (Kubernetes in
 Kind supports [rootless Podman](https://github.com/containers/podman/blob/main/docs/tutorials/rootless_tutorial.md) which is a [valid choice for HPC use cases](https://www.redhat.com/en/blog/podman-paves-road-running-containerized-hpc-applications-exascale-supercomputers).
 This project is part of my master’s thesis of investigating approaches to run Kubernetes workloads in a Slurm cluster.
 
+> Limitation: In its current state, this project does not support running a single distributed workload across multiple Slurm nodes. 
+> So far, a temporary Kubernetes cluster node can not communicate with another node running on a different Slurm node.
+
 ## Prerequisites
 First, the Slurm cluster has to be up and running. 
 This project aims for RHEL 9 x86 distributions, but may work on other RHEL distributions as well.

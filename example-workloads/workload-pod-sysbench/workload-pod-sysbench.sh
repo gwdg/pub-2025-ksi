@@ -33,5 +33,3 @@ kubectl logs sysbench-cpu -n bench --context "$K8S_CLUSTER_NAME"
 
 # Clean up
 kubectl delete --context "$K8S_CLUSTER_NAME" namespace bench
-
-# TODO handle job cancellation

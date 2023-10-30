@@ -201,3 +201,13 @@ EOF
 
 kubectl logs pod/alpine
 ```
+
+### Error During Creating Kind Cluster
+```
+ERROR: failed to create cluster: could not find a log line that matches "Reached target .*Multi-User System.*|detected cgroup v1"
+```
+
+This error seems to occur, when the machine does not have sufficient resources left. 
+Each machine can only handle a certain number of Kind clusters.
+
+Fix try to run workload on another cluster or delete other clusters first.

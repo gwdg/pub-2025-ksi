@@ -61,9 +61,22 @@ else
     echo "Warn: file /etc/os-release not present. Can not determine OS version. Proceeding with default procedure" >&2
 fi
 
+function random_unused_port {
+  local port
+  for ((port=30000; port<=32767; port++)); do
+      ss -Htan | awk '{print $4}' | cut -d':' -f2 | grep "$port" > /dev/null
+      if [[ $? == 1 ]] ; then
+          echo "$port"
+          break
+      fi
+  done
+}
 
 # Create kind kubernetes cluster ------------------------
 cluster_name="$(uuidgen | tr -d '-' | head -c5)"
+: "${K8S_PORT:=$(random_unused_port)}" # if K8S_PORT is not set
+export K8S_PORT=$K8S_PORT
+echo "K8S_PORT=$K8S_PORT"
 
 function cleanup () {
   echo "Deleting Kind cluster container $cluster_name"
@@ -79,14 +92,17 @@ function cleanup () {
 trap cleanup EXIT # Normal Exit
 trap cleanup SIGTERM # Termination from Slurm and CTRL + C
 
+echo "Kind config:"
+envsubst < kind-config-template.yaml
+
 # https://kind.sigs.k8s.io/docs/user/rootless/
 # https://kind.sigs.k8s.io/docs/user/quick-start/
-# kind-config.yaml contains a mapping for the current directory into the `/app` directory inside the cluster container.
+# kind-config-template.yaml contains a mapping for the current directory into the `/app` directory inside the cluster container.
 if [[ "$NAME" == "CentOS Stream" && "$VERSION_ID" = "8" ]]; then
   # On some distributions, you might need to use systemd-run to start kind into its own cgroup scope:
-  KIND_EXPERIMENTAL_PROVIDER=podman systemd-run --scope --user kind create cluster --name "$cluster_name" --wait 5m --config ./kind-config.yaml
+  envsubst < kind-config-template.yaml | KIND_EXPERIMENTAL_PROVIDER=podman systemd-run --scope --user kind create cluster --name "$cluster_name" --wait 5m --config -
 else
-  KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster --name "$cluster_name" --wait 5m --config ./kind-config.yaml
+  envsubst < kind-config-template.yaml | KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster --name "$cluster_name" --wait 5m --config -
 fi
 
 # Test kubectl and cluster

@@ -55,6 +55,17 @@ However, this is not strictly necessary due to the fact that the whole Kubernete
 
 In workload scripts, the Kubernetes cluster can also be accessed by the Kubernetes REST API. For this use case, two environment variables are provided: `$K8S_CLUSTER_API` amd `$K8S_CLUSTER_API_TOKEN`. The file [workload-kube-api.sh](example-workloads/workload-kube-api/workload-kube-api.sh) provides an example. The token grants access to the service account `admin-user`, which has bound the role `cluster-admin`.
 
+#### Variables
+Overall following variables are available inside workload scripts:
+
+| Variable Name         | Description                                                                                                                                                                                                                                                                                      |
+|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| K8S_CLUSTER_NAME      | Name of the Kind cluster. Can be used in kubectl `--context`                                                                                                                                                                                                                                     |
+| K8S_CLUSTER_API       | URL of the Kubernetes API                                                                                                                                                                                                                                                                        |
+| K8S_CLUSTER_API_TOKEN | Token for the Kubernetes API                                                                                                                                                                                                                                                                     |
+| K8S_PORT              | Port that is shared with the host machine. This port is selected on runtime from the range 30000 to 32767, in case it is not set beforehand. It can be used e.g. in a Kubernetes service - [workload-pod-nginx.sh](example-workloads/workload-pod-nginx/workload-pod-nginx.sh) gives an example. |
+
+
 #### Examples
 
 Following workload script is a minimal example:
@@ -161,7 +172,7 @@ KIND_EXPERIMENTAL_PROVIDER=podman systemd-run --scope --user kind delete cluster
 ## Common Errors
 ### PermissionError: [Errno 13] Permission Denied
 Inside a Kubernetes pod or job, a permission denied error may occur. This usually means that the user is has no permissions to access a file or directory.  
-A cause for this may be the directory mapping in the kind config [kind-config.yaml](kind-config.yaml) or the (un)set user in the pod or job.
+A cause for this may be the directory mapping in the kind config [kind-config-template.yaml](kind-config-template.yaml) or the (un)set user in the pod or job.
 
 Some container images may have set up a non-root user, that executes the application inside the container.
 This fact can lead to the error mentioned above.

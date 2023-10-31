@@ -1,6 +1,7 @@
 # Initial Setup
-Install required software for Kind on Podman. Run following commands as `root` user, unless stated otherwise.
-This instruction aims for RHEL 9 based x86 distros and is tested with CentOS Stream 9 (SELinux disabled).
+This setup guide describes the required software and necessary configurations for KSI. Run following commands as `root` user, unless stated otherwise.
+After the setup is completed, the machine must be rebooted in order for all configurations to take effect.
+This guide aims for RHEL 9 based x86 distros and is tested with CentOS Stream 9 (SELinux disabled). 
 
 ## Test Setup Versions
 We tested this setup with following software versions. 
@@ -105,6 +106,10 @@ kubectl cluster-info --context kind-kind
 # Run following to delete kind Kubernetes cluster
 KIND_EXPERIMENTAL_PROVIDER=podman kind delete cluster --name kind
 ```
+
+## Reboot
+After the setup is completed, the machine must be rebooted in order for all configurations to take effect.
+
 
 ## Common Issues
 

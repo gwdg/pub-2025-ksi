@@ -1,4 +1,7 @@
 #!/bin/bash
+
+#SBATCH --signal=B:SIGTERM@60
+
 set -x # Print each command before execution
 set -e # fail and abort script if one command fails
 set -o pipefail

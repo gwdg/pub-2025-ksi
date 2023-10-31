@@ -9,7 +9,7 @@ This project is part of my master’s thesis at the [Georg August University of 
 > So far, a temporary Kubernetes cluster node can not communicate with another node running on a different Slurm node.
 
 ## Prerequisites
-First, the Slurm cluster has to be up and running. 
+First, the Slurm cluster has to be up and running. Also, a shared storage among all cluster nodes (e.g. NFS) has to be present.
 This project aims for RHEL 9 x86 distributions, but may work on other RHEL distributions as well.
 Apart from that, all nodes have to have certain software installed:
 
@@ -28,7 +28,7 @@ Also, all nodes must ensure certain configurations:
 The initial setup instructions to ensure the prerequisites can be found in [Setup.md](Setup.md).
 
 ## Script: Run Slurm Job
-The script [run-workload.sh](run-workload.sh) provides users the option to execute user-defined Kubernetes workloads as batch jobs on a Slurm cluster.
+The script [run-workload.sh](run-workload.sh) provides users the option to execute user-defined Kubernetes workloads as jobs on a Slurm cluster.
 To do so, users can write a custom Linux shell script that creates workloads using kubectl.
 The script [run-workload.sh](run-workload.sh) handles setting up a temporary Kubernetes cluster inside a container using [Kind](https://github.com/kubernetes-sigs/kind), 
 then executes the Kubernetes workload (user-defined workload script), and finally deletes the cluster when the workload is finished.
@@ -109,6 +109,7 @@ Further examples of workload scripts are included in the directory `example-work
 - [workload-job-pytorch.sh](example-workloads/workload-job-pytorch/workload-job-pytorch.sh): Runs a PyTorch training and stores the resulting model on the node in the directory `./kubernetes-pytorch/out/`
 - [workload-yaml.sh](example-workloads/workload-yaml/workload-yaml.sh): Runs a hello-world job defined in a `yaml` file
 - [workload-kube-api.sh](example-workloads/workload-kube-api/workload-kube-api.sh): Queries the Kubernetes REST API using curl
+- [workload-pod-nginx.sh](example-workloads/workload-pod-nginx/workload-pod-nginx.sh): Runs an nginx webserver. This serves as an example how a service running on one node can access be accessed from another node.
 
 ### Usage
 In general, the script can run without root privileges.

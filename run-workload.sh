@@ -90,7 +90,8 @@ function cleanup () {
   fi
 }
 trap cleanup EXIT # Normal Exit
-trap cleanup SIGTERM # Termination from Slurm and CTRL + C
+trap cleanup SIGTERM # Termination
+trap cleanup SIGINT # CTRL + C
 
 echo "Kind config:"
 envsubst < kind-config-template.yaml
@@ -146,6 +147,7 @@ export K8S_CLUSTER_API_TOKEN=$K8S_CLUSTER_API_TOKEN
 
 # Run Kubernetes Workload ------------------------
 echo "Executing the Kubernetes workload script $1 on cluster kind-$cluster_name"
-/bin/bash "$1"
+/bin/bash "$1" &
+wait # wait for background process. Fix for not working signal handling in Slurm (See https://docs.gwdg.de/doku.php?id=en:services:application_services:high_performance_computing:running_jobs_slurm:signals)
 
 # Deleting cluster is handled in cleanup function

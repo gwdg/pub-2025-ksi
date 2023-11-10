@@ -4,7 +4,7 @@ set -x # Print each command before execution
 echo "K8S_PORT: $K8S_PORT"
 
 kubectl create --context "$K8S_CLUSTER_NAME" namespace nginx
-# Create workload as pods of jobs
+# Create workload as pods or jobs
 kubectl create -n nginx --context "$K8S_CLUSTER_NAME" -f - <<EOF
 kind: Pod
 apiVersion: v1

@@ -25,11 +25,9 @@ EOF
 
 # Wait until pod starts https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#wait
 kubectl wait -n bench --context "$K8S_CLUSTER_NAME" --for condition=Ready --timeout=10m pod/sysbench-cpu
-# Wait until pod stops (there is no possibility to directly wait for pod complete - so this is the workaround https://stackoverflow.com/a/77036091/14355362)
-kubectl wait -n bench --context "$K8S_CLUSTER_NAME" --for condition=Ready=False --timeout=200h pod/sysbench-cpu
 
-# Print results
-kubectl logs sysbench-cpu -n bench --context "$K8S_CLUSTER_NAME"
+# Follow console logs and wait for completion
+kubectl logs -f sysbench-cpu -n bench --context "$K8S_CLUSTER_NAME"
 
 # Clean up
 kubectl delete --context "$K8S_CLUSTER_NAME" namespace bench

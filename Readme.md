@@ -129,6 +129,23 @@ srun -N1 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/
 ```
 > To utilize the full compute power of a machine, additional Slurm arguments may be needed. The following arguments allow the job to use 56 CPU cores: `srun -N1 -c56`
 
+#### sbatch
+One can also use `sbatch` to run KSI. The following batch script `batch-ksi.sh` serves as an example:
+```shell
+#!/bin/bash
+# batch-ksi.sh
+
+#SBATCH --nodes=1
+
+srun -N1 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh
+```
+
+Run the following command from the project root directory:
+```shell
+sbatch -D $PWD batch-ksi.sh
+```
+
+#### Run without Slurm
 In fact, the script can also operate without Slurm:
 ```bash
 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh

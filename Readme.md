@@ -3,7 +3,7 @@
 This repository covers an approach to run Kubernetes workloads in a Slurm cluster. 
 The approach uses [Kind](https://github.com/kubernetes-sigs/kind) (Kubernetes in Docker) to set up temporary Kubernetes clusters. 
 Kind supports [rootless Podman](https://github.com/containers/podman/blob/main/docs/tutorials/rootless_tutorial.md) which is a [valid choice for HPC use cases](https://www.redhat.com/en/blog/podman-paves-road-running-containerized-hpc-applications-exascale-supercomputers).
-This project is part of my master’s thesis at the [Georg August University of Göttingen](https://www.uni-goettingen.de). The goal of the thesis is to investigate approaches to run Kubernetes workloads in a Slurm cluster.
+This project is part of my [master’s thesis](https://doi.org/10.25625/GDFCFP) at the Georg August University of Göttingen. The goal of the thesis is to investigate approaches to run Kubernetes workloads in a Slurm cluster.
 
 > Limitation: In its current state, this project does not support running a single distributed workload across multiple Slurm nodes. 
 > So far, a temporary Kubernetes cluster node can not communicate with another node running on a different Slurm node.

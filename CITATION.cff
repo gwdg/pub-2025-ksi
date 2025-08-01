@@ -10,15 +10,21 @@ type: software
 authors:
   - given-names: Sören
     family-names: Metje
-repository-code: 'https://github.com/soerenmetje/kind-slurm-integration'
+  - given-names: Mojtaba
+    family-names: Akbari
+  - given-names: Ali
+    family-names: Doost Hosseini
+  - given-names: Jonathan
+    family-names: Decker
+repository-code: 'https://github.com/gwdg/pub-2025-ksi'
 abstract: >-
-  Running Kubernetes workloads in a Slurm cluster using Kind
-  and Podman 
+  Running Kubernetes workloads in a Slurm cluster using Kind, Nerdctl and Liqo.
 keywords:
   - kubernetes
   - slurm
   - kind
-  - podman
+  - nerdctl
   - container
   - hpc
+  - liqo
 license: GPL-3.0

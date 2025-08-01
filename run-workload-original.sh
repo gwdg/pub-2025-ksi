@@ -33,12 +33,6 @@ fi
 #module load kubectl
 #module load kind
 
-# Print kind version
-kind --version
-
-# Enable bypass4netns for nerdctl
-containerd-rootless-setuptool.sh install-bypass4netnsd
-
 if [ -x "$(which podman)" ]; then
     echo "podman check passed"
 else
@@ -92,10 +86,10 @@ function cleanup () {
   # Delete kind Kubernetes cluster ------------------------
   if [[ "$NAME" == "CentOS Stream" && "$VERSION_ID" = "8" ]]; then
     # On some distributions, you might need to use systemd-run to start kind into its own cgroup scope
-    KIND_EXPERIMENTAL_PROVIDER=nerdctl systemd-run --scope --user kind delete cluster --name "$cluster_name"
+    KIND_EXPERIMENTAL_PROVIDER=podman systemd-run --scope --user kind delete cluster --name "$cluster_name"
   else
       # https://kind.sigs.k8s.io/docs/user/quick-start/
-    KIND_EXPERIMENTAL_PROVIDER=nerdctl kind delete cluster --name "$cluster_name"
+    KIND_EXPERIMENTAL_PROVIDER=podman kind delete cluster --name "$cluster_name"
   fi
 }
 trap cleanup EXIT # Normal Exit
@@ -110,9 +104,9 @@ envsubst < kind-config-template.yaml
 # kind-config-template.yaml contains a mapping for the current directory into the `/app` directory inside the cluster container.
 if [[ "$NAME" == "CentOS Stream" && "$VERSION_ID" = "8" ]]; then
   # On some distributions, you might need to use systemd-run to start kind into its own cgroup scope:
-  envsubst < kind-config-template.yaml | KIND_EXPERIMENTAL_PROVIDER=nerdctl systemd-run --scope --user kind create cluster --name "$cluster_name" --wait 5m --config -
+  envsubst < kind-config-template.yaml | KIND_EXPERIMENTAL_PROVIDER=podman systemd-run --scope --user kind create cluster --name "$cluster_name" --wait 5m --config -
 else
-  envsubst < kind-config-template.yaml | KIND_EXPERIMENTAL_PROVIDER=nerdctl kind create cluster --name "$cluster_name" --wait 5m --config -
+  envsubst < kind-config-template.yaml | KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster --name "$cluster_name" --wait 5m --config -
 fi
 
 # Test kubectl and cluster

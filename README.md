@@ -2,23 +2,25 @@
 
 This repository covers an approach to run Kubernetes workloads in a Slurm cluster. 
 The approach uses [Kind](https://github.com/kubernetes-sigs/kind) (Kubernetes in Docker) to set up temporary Kubernetes clusters. 
-Kind supports [rootless Podman](https://github.com/containers/podman/blob/main/docs/tutorials/rootless_tutorial.md) which is a [valid choice for HPC use cases](https://www.redhat.com/en/blog/podman-paves-road-running-containerized-hpc-applications-exascale-supercomputers).
-This project is part of my [master’s thesis](https://doi.org/10.25625/GDFCFP) at the Georg August University of Göttingen. The goal of the thesis is to investigate approaches to run Kubernetes workloads in a Slurm cluster.
-
-> Limitation: In its current state, this project does not support running a single distributed workload across multiple Slurm nodes. 
-> So far, a temporary Kubernetes cluster node can not communicate with another node running on a different Slurm node.
+Kind supports [rootless Nerdctl](https://github.com/containerd/nerdctl/blob/main/docs/rootless.md).
+This project originated in a [master’s thesis](https://doi.org/10.25625/GDFCFP) at the Georg August University of Göttingen.
+The goal of the thesis was to investigate approaches to run Kubernetes workloads in a Slurm cluster.
 
 ## Prerequisites
-First, the Slurm cluster has to be up and running. Also, a shared storage among all cluster nodes (e.g. NFS) has to be present.
-This project aims for RHEL 9 x86 distributions, but may work on other RHEL distributions as well.
+First, a Slurm cluster has to be up and running.
+Also, a shared storage among all cluster nodes (e.g., NFS) has to be present.
+This project aims for RHEL-like 9 x86_64 distributions, but may work on other RHEL distributions as well.
 Apart from that, all nodes have to have certain software installed:
 
 - Bash
-- Podman 
-- slirp4netns
+- Nerdctl
+- Containerd
+- Rootlesskit
+- Containernetworking-plugins
+- Slirp4netns
 - Kind
 - Kubectl
-- shadow-utils
+- Liqoctl
 
 Also, all nodes must ensure certain configurations:
 - cgroups v2 is enabled
@@ -32,18 +34,17 @@ The initial setup instructions to ensure the prerequisites can be found in [Setu
 2. `cd` into the directory
 3. As an example, run:
 ```bash
-srun -N1 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh
+srun -N3 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh $PWD
 ```
-
 
 ## Script: Run Slurm Job
 The script [run-workload.sh](run-workload.sh) provides users the option to execute user-defined Kubernetes workloads as jobs on a Slurm cluster.
 To do so, users can write a custom Linux shell script that creates workloads using kubectl.
 The script [run-workload.sh](run-workload.sh) handles setting up a temporary Kubernetes cluster inside a container using [Kind](https://github.com/kubernetes-sigs/kind), 
-then executes the Kubernetes workload (user-defined workload script), and finally deletes the cluster when the workload is finished.
+it then executes the Kubernetes workload (user-defined workload script), and finally deletes the cluster when the workload is finished.
 It supports multi-tenant usage - so multiple users can create multiple clusters and can use them separately. 
 Also, a single user can create multiple Slurm jobs leading to multiple clusters in parallel on the same node.
-
+Moreover, the script installs [Liqo](https://github.com/liqotech/liqo) to be able to form multi-node clusters.
 
 To enable access to files on the host machine inside a Kubernetes workload, 
 the current working directory of the host machine is shared with the Kubernetes cluster container. 
@@ -51,8 +52,8 @@ Inside the container it is available in `/app`. In a Kubernetes workload this di
 The script [workload-job-pytorch.sh](example-workloads/workload-job-pytorch/workload-job-pytorch.sh) gives an example on how the shared directory may be used.
 
 ### User-defined Workload Scripts
-As mentioned before, users can write scripts that describe the workload. Inside the script, `kubectl` is available for usage. 
-How can the right clusters be selected in case of multiple Slurm jobs? 
+Users can write scripts that describe the workload.
+Inside the script, `kubectl` is available for usage. 
 During creating the Kubernetes cluster a random name is picked for the cluster. 
 This name is available in the workload script through the variable `K8S_CLUSTER_NAME` and can be used in `kubectl` to reference the correct cluster e.g. `kubectl get jobs --context "$K8S_CLUSTER_NAME"`. 
 
@@ -122,12 +123,14 @@ Further examples of workload scripts are included in the directory `example-work
 
 ### Usage
 In general, the script can run without root privileges.
-Also, the path to your Kubernetes workload script has to be passed as an argument. Here, the script [workload-pod-sysbench.sh](example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh) is used as an example. 
+Also, the path to your Kubernetes workload script has to be passed as an argument as well as the path to a shared folder that can be used for synchronization during multi-node setups.
+Here, the script [workload-pod-sysbench.sh](example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh) is used as an example. 
 Run the following command from the project root directory to use Slurm to execute the workload:
 ```bash
-srun -N1 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh
+srun -N3 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh $PWD
 ```
-> To utilize the full compute power of a machine, additional Slurm arguments may be needed. The following arguments allow the job to use 56 CPU cores: `srun -N1 -c56`
+> Here it is assumed that $PWD is on a shared file system.
+> To utilize the full compute power of a machine, additional Slurm arguments may be needed.
 
 #### sbatch
 One can also use `sbatch` to run KSI. The following batch script `batch-ksi.sh` serves as an example:
@@ -135,9 +138,9 @@ One can also use `sbatch` to run KSI. The following batch script `batch-ksi.sh` 
 #!/bin/bash
 # batch-ksi.sh
 
-#SBATCH --nodes=1
+#SBATCH --nodes=3
 
-srun -N1 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh
+srun -N3 /bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh
 ```
 
 Run the following command from the project root directory:
@@ -146,42 +149,31 @@ sbatch -D $PWD batch-ksi.sh
 ```
 
 #### Run without Slurm
-In fact, the script can also operate without Slurm:
+KSI can also operate without Slurm, however, multi-node usage is not supported without Slurm.
 ```bash
-/bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh
+/bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh $PWD
 ```
 To store the stdout and stderr in a file you can add following `tee` command:
 ```bash
-/bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh |& tee log.txt
+/bin/bash run-workload.sh $PWD/example-workloads/workload-pod-sysbench/workload-pod-sysbench.sh $PWD |& tee log.txt
 ```
 
-## Script: Start Interactive Slurm Job
-
-To set up an interactive Kubernetes cluster in a Slurm job run:
-
-TODO
-
-Ideas:
-- Slurm job that creates a cluster (fire and forget) that can be used from login node. 
-May need to implement some function to delete the cluster on job cancellation.
-- Interactive slum job
 ## Troubleshooting
 
 ### List All Kubernetes Clusters
 
 To list all Kubernetes clusters run:
 ```bash
-KIND_EXPERIMENTAL_PROVIDER=podman kind get clusters
+KIND_EXPERIMENTAL_PROVIDER=nerdctl kind get clusters
 ```
 To list all Kubernetes nodes run:
 ```bash
-KIND_EXPERIMENTAL_PROVIDER=podman kind get nodes
+KIND_EXPERIMENTAL_PROVIDER=nerdctl kind get nodes
 ```
 
-
-Alternatively, you can gain insight on your existing Kubernetes clusters by listing all Podman containers:
+Alternatively, you can gain insight on your existing Kubernetes clusters by listing all Nerdctl containers:
 ```bash
-podman ps -a
+nerdctl ps -a
 ```
 
 ### Manually Deleting a Kubernetes Cluster 
@@ -189,11 +181,11 @@ In case a Slurm job fails, you might encounter a still running Kubernetes cluste
 To delete this cluster you need to find out the name first.
 Then you can run:
 ```bash
-KIND_EXPERIMENTAL_PROVIDER=podman kind delete cluster --name "cluster_name"
+KIND_EXPERIMENTAL_PROVIDER=nerdctl kind delete cluster --name "cluster_name"
 ```
 or for some distributions, you might need to use systemd-run to start kind into its own cgroup scope
 ```bash
-KIND_EXPERIMENTAL_PROVIDER=podman systemd-run --scope --user kind delete cluster --name "cluster_name"
+KIND_EXPERIMENTAL_PROVIDER=nerdctl systemd-run --scope --user kind delete cluster --name "cluster_name"
 ```
 
 ## Common Errors

@@ -2,18 +2,15 @@
 
 #SBATCH --signal=B:SIGTERM@60
 
-set -x # Print each command before execution
-set -e # fail and abort script if one command fails
-set -o pipefail
+set -euo pipefail
 
-if [ -z "$1" ]; then
-    echo "Missing argument: Script is not specified. Pass a path to a script." >&2
-    exit 1
-fi
+# Arguments:
+WORKLOAD_SCRIPT=${1:-}
+SHARE_MOUNT=${2:-}
 
-if [ ! -f "$1" ]; then
-    echo "File does not exists for passed path" >&2
-    exit 2
+if [[ -z "$WORKLOAD_SCRIPT" || -z "$SHARE_MOUNT" ]]; then
+  echo "Usage: $0 <workload-script> <shared-mount-path>"
+  exit 1
 fi
 
 # Ensure prerequisites ------------------------
@@ -26,17 +23,16 @@ else
     exit 3
 fi
 
-# Load dependencies in case a module manager is present on node
-#module purge
-#module load podman
-#module load slirp4netns
-#module load kubectl
-#module load kind
+# Print kind version
+kind --version
 
-if [ -x "$(which podman)" ]; then
-    echo "podman check passed"
+# Enable bypass4netns for nerdctl
+containerd-rootless-setuptool.sh install-bypass4netnsd
+
+if [ -x "$(which nerdctl)" ]; then
+    echo "nerdctl check passed"
 else
-    echo "podman check failed: podman not installed or not available in shell" >&2
+    echo "nerdctl check failed: nerdctl not installed or not available in shell" >&2
     exit 4
 fi
 
@@ -54,103 +50,90 @@ else
     exit 4
 fi
 
-# Find out distribution - some distributions require different commands
-if [ -f /etc/os-release ]
-then
-    . /etc/os-release
-    # vars listed in /etc/os-release are now available as ENV vars
-    echo "Successfully read /etc/os-release"
-else
-    echo "Warn: file /etc/os-release not present. Can not determine OS version. Proceeding with default procedure" >&2
-fi
+CLUSTER_NAME="liqo-${SLURM_PROCID:-$$}"
+CLUSTER_ID="${SLURM_PROCID}"
+CONTROL_PLANE_PORT=$((6443 + CLUSTER_ID))
+WORKER_IP=$(hostname -I | awk '{print $1}')
 
-function random_unused_port {
-  local port
-  for ((port=30000; port<=32767; port++)); do
-      ss -Htan | awk '{print $4}' | cut -d':' -f2 | grep "$port" > /dev/null
-      if [[ $? == 1 ]] ; then
-          echo "$port"
-          break
-      fi
-  done
-}
+cat > kind-config-${CLUSTER_NAME}.yaml <<EOF
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: ${CLUSTER_NAME}
+nodes:
+  - role: control-plane
+    extraMounts:
+    - hostPath: ${SHARE_MOUNT}/app
+      containerPath: /app
+    extraPortMappings:
+      - containerPort: 6443
+        hostPort: ${CONTROL_PLANE_PORT}
+        listenAddress: "${WORKER_IP}"
+EOF
 
-# Create kind kubernetes cluster ------------------------
-cluster_name="$(uuidgen | tr -d '-' | head -c5)"
-: "${K8S_PORT:=$(random_unused_port)}" # if K8S_PORT is not set
-export K8S_PORT=$K8S_PORT
-echo "K8S_PORT=$K8S_PORT"
+mkdir -p "${SHARE_MOUNT}/app"
 
 function cleanup () {
-  echo "Deleting Kind cluster container $cluster_name"
+  echo "[Task ${CLUSTER_ID}] Cleaning up KinD cluster..."
   # Delete kind Kubernetes cluster ------------------------
   if [[ "$NAME" == "CentOS Stream" && "$VERSION_ID" = "8" ]]; then
     # On some distributions, you might need to use systemd-run to start kind into its own cgroup scope
-    KIND_EXPERIMENTAL_PROVIDER=podman systemd-run --scope --user kind delete cluster --name "$cluster_name"
+    KIND_EXPERIMENTAL_PROVIDER=nerdctl systemd-run --scope --user kind delete cluster --name "$cluster_name"
   else
       # https://kind.sigs.k8s.io/docs/user/quick-start/
-    KIND_EXPERIMENTAL_PROVIDER=podman kind delete cluster --name "$cluster_name"
+    KIND_EXPERIMENTAL_PROVIDER=nerdctl kind delete cluster --name "$cluster_name"
   fi
 }
+
 trap cleanup EXIT # Normal Exit
 trap cleanup SIGTERM # Termination
 trap cleanup SIGINT # CTRL + C
 
-echo "Kind config:"
-envsubst < kind-config-template.yaml
+echo "[Task ${CLUSTER_ID}] Creating KinD cluster: $CLUSTER_NAME"
+KIND_EXPERIMENTAL_PROVIDER=nerdctl kind create cluster --name "$CLUSTER_NAME" --image kindest/node:v1.29.0 --config kind-config-${CLUSTER_NAME}.yaml --wait 60s
 
-# https://kind.sigs.k8s.io/docs/user/rootless/
-# https://kind.sigs.k8s.io/docs/user/quick-start/
-# kind-config-template.yaml contains a mapping for the current directory into the `/app` directory inside the cluster container.
-if [[ "$NAME" == "CentOS Stream" && "$VERSION_ID" = "8" ]]; then
-  # On some distributions, you might need to use systemd-run to start kind into its own cgroup scope:
-  envsubst < kind-config-template.yaml | KIND_EXPERIMENTAL_PROVIDER=podman systemd-run --scope --user kind create cluster --name "$cluster_name" --wait 5m --config -
+# Get the name of the control-plane container
+CONTROL_PLANE_CONTAINER="${CLUSTER_NAME}-control-plane"
+
+# Get the container IP
+CONTAINER_IP=$(nerdctl inspect -f '{{ .NetworkSettings.IPAddress }}' "$CONTROL_PLANE_CONTAINER")
+
+# Export kubeconfig to shared mount
+KUBECONFIG_EXPORT_PATH="${SHARE_MOUNT}/kubeconfig-liqo-${CLUSTER_ID}.yaml"
+echo "[Task ${CLUSTER_ID}] Exporting kubeconfig to ${KUBECONFIG_EXPORT_PATH} ..."
+KIND_EXPERIMENTAL_PROVIDER=nerdctl kind get kubeconfig --name "$CLUSTER_NAME" > "${KUBECONFIG_EXPORT_PATH}"
+
+# Patch the kubeconfig to use external host IP instead of container hostname
+sed -i "s|https://.*control-plane:6443|https://${WORKER_IP}:${CONTROL_PLANE_PORT}|g" "${KUBECONFIG_EXPORT_PATH}"
+
+# Add insecure-skip-tls-verify and remove CA cert
+yq eval '.clusters[].cluster |= . + {"insecure-skip-tls-verify": true} | .clusters[].cluster.certificate-authority-data = null' -i "${KUBECONFIG_EXPORT_PATH}"
+
+echo "[Task ${CLUSTER_ID}] Waiting for all nodes to be ready..."
+kubectl --kubeconfig="${KUBECONFIG_EXPORT_PATH}" wait node --all --for=condition=Ready --timeout=120s
+
+echo "[Task ${CLUSTER_ID}] Installing Liqo on cluster..."
+liqoctl install kind --kubeconfig "${KUBECONFIG_EXPORT_PATH}" || {
+  echo "ERROR: Liqo install failed!"
+  exit 1
+}
+
+# Extract current-context and export required env vars
+K8S_CLUSTER_NAME=$(yq eval '.["current-context"]' "${KUBECONFIG_EXPORT_PATH}")
+export KUBECONFIG="${KUBECONFIG_EXPORT_PATH}"
+export K8S_CLUSTER_NAME
+
+echo "[Task ${CLUSTER_ID}] Liqo install complete. Running workload..."
+bash "$WORKLOAD_SCRIPT" "$SHARE_MOUNT"
+WORKLOAD_EXIT_CODE=$?
+
+if [[ $WORKLOAD_EXIT_CODE -ne 0 ]]; then
+  echo "[Task ${CLUSTER_ID}] Workload script exited with code $WORKLOAD_EXIT_CODE"
 else
-  envsubst < kind-config-template.yaml | KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster --name "$cluster_name" --wait 5m --config -
+  echo "[Task ${CLUSTER_ID}] Workload completed successfully"
 fi
 
-# Test kubectl and cluster
-kubectl get nodes --context "kind-$cluster_name"
-kubectl cluster-info --context "kind-$cluster_name"
+rm -f kind-config-${CLUSTER_NAME}.yaml
+rm -f kubeconfig-liqo-${CLUSTER_ID}.yaml
 
-K8S_CLUSTER_NAME="kind-$cluster_name"
-export K8S_CLUSTER_NAME=$K8S_CLUSTER_NAME
-# Source: https://collabnix.github.io/kubelabs/api.html
-K8S_CLUSTER_API=$(kubectl config view -o jsonpath="{.clusters[?(@.name=='$K8S_CLUSTER_NAME')].cluster.server}")
-export K8S_CLUSTER_API=$K8S_CLUSTER_API
-
-# Create ServiceAccount and ClusterRoleBinding to enable admin access
-# Existing SA such as kube-system:default seem to have only restricted access in Kind clusters
-# Source: https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md
-kubectl --context "$K8S_CLUSTER_NAME" create -f -  <<EOF
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: admin-user
-  namespace: kube-system
-EOF
-kubectl --context "$K8S_CLUSTER_NAME" create -f -  <<EOF
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: admin-user
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
-subjects:
-- kind: ServiceAccount
-  name: admin-user
-  namespace: kube-system
-EOF
-# Source: https://iximiuz.com/en/posts/kubernetes-api-call-simple-http-client/
-# Kubernetes 1.24+
-K8S_CLUSTER_API_TOKEN=$(kubectl --context "$K8S_CLUSTER_NAME" -n kube-system create token admin-user)
-export K8S_CLUSTER_API_TOKEN=$K8S_CLUSTER_API_TOKEN
-
-# Run Kubernetes Workload ------------------------
-echo "Executing the Kubernetes workload script $1 on cluster kind-$cluster_name"
-/bin/bash "$1" &
-wait # wait for background process. Fix for not working signal handling in Slurm (See https://docs.gwdg.de/doku.php?id=en:services:application_services:high_performance_computing:running_jobs_slurm:signals)
-
-# Deleting cluster is handled in cleanup function
+echo "[Task ${CLUSTER_ID}] Done."
+exit $WORKLOAD_EXIT_CODE

@@ -75,13 +75,8 @@ mkdir -p "${SHARE_MOUNT}/app"
 function cleanup () {
   echo "[Task ${CLUSTER_ID}] Cleaning up KinD cluster..."
   # Delete kind Kubernetes cluster ------------------------
-  if [[ "$NAME" == "CentOS Stream" && "$VERSION_ID" = "8" ]]; then
-    # On some distributions, you might need to use systemd-run to start kind into its own cgroup scope
-    KIND_EXPERIMENTAL_PROVIDER=nerdctl systemd-run --scope --user kind delete cluster --name "$cluster_name"
-  else
-      # https://kind.sigs.k8s.io/docs/user/quick-start/
-    KIND_EXPERIMENTAL_PROVIDER=nerdctl kind delete cluster --name "$cluster_name"
-  fi
+  # https://kind.sigs.k8s.io/docs/user/quick-start/
+  KIND_EXPERIMENTAL_PROVIDER=nerdctl kind delete cluster --name "$CLUSTER_NAME"
 }
 
 trap cleanup EXIT # Normal Exit

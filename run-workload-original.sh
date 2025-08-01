@@ -84,29 +84,25 @@ echo "K8S_PORT=$K8S_PORT"
 function cleanup () {
   echo "Deleting Kind cluster container $cluster_name"
   # Delete kind Kubernetes cluster ------------------------
-  if [[ "$NAME" == "CentOS Stream" && "$VERSION_ID" = "8" ]]; then
-    # On some distributions, you might need to use systemd-run to start kind into its own cgroup scope
-    KIND_EXPERIMENTAL_PROVIDER=podman systemd-run --scope --user kind delete cluster --name "$cluster_name"
-  else
-      # https://kind.sigs.k8s.io/docs/user/quick-start/
-    KIND_EXPERIMENTAL_PROVIDER=podman kind delete cluster --name "$cluster_name"
-  fi
+  # https://kind.sigs.k8s.io/docs/user/quick-start/
+  KIND_EXPERIMENTAL_PROVIDER=podman kind delete cluster --name "$cluster_name"
 }
 trap cleanup EXIT # Normal Exit
 trap cleanup SIGTERM # Termination
 trap cleanup SIGINT # CTRL + C
 
 echo "Kind config:"
-envsubst < kind-config-template.yaml
+config_dir=$(dirname "$(realpath "$0")")
+envsubst < "$config_dir"/kind-config-template.yaml
 
 # https://kind.sigs.k8s.io/docs/user/rootless/
 # https://kind.sigs.k8s.io/docs/user/quick-start/
 # kind-config-template.yaml contains a mapping for the current directory into the `/app` directory inside the cluster container.
 if [[ "$NAME" == "CentOS Stream" && "$VERSION_ID" = "8" ]]; then
   # On some distributions, you might need to use systemd-run to start kind into its own cgroup scope:
-  envsubst < kind-config-template.yaml | KIND_EXPERIMENTAL_PROVIDER=podman systemd-run --scope --user kind create cluster --name "$cluster_name" --wait 5m --config -
+  envsubst < "$config_dir"/kind-config-template.yaml | KIND_EXPERIMENTAL_PROVIDER=podman systemd-run --scope --user kind create cluster --name "$cluster_name" --wait 5m --config -
 else
-  envsubst < kind-config-template.yaml | KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster --name "$cluster_name" --wait 5m --config -
+  envsubst < "$config_dir"/kind-config-template.yaml | KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster --name "$cluster_name" --wait 5m --config -
 fi
 
 # Test kubectl and cluster

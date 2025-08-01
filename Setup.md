@@ -20,7 +20,7 @@ Potentially, newer versions should also work.
 | slirp4netns  | v1.3.2                             | Enables rootless container networking          |
 | bypass4netns | v0.4.2                             | Enables rootless container networking          |
 | Kind         | 0.29.0                             |                                                |
-| Kubectl      | Client Version: v1.33.3            |                                                |
+| Kubectl      | Client Version: v1.33.2            |                                                |
 | libseccomp   | 2.5.2                              | Required by bypass4netns                       |
 | Liqoctl      | v1.0.1                             |                                                |
 

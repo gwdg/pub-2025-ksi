@@ -4,6 +4,7 @@ After the setup is completed, the machine must be rebooted in order for all conf
 This guide aims for RHEL 9 based x86 distros and is tested with CentOS Stream 9 (SELinux disabled). 
 
 The commands listed below should be executed as root unless stated otherwise.
+This setup has to be performed on every worker node in the cluster.
 
 ## Test Setup Versions
 We tested this setup with following software versions. 
@@ -79,7 +80,7 @@ dnf install -y containerd.io
 
 ### Install Build Tools and Dependencies
 ```bash
-dnf install git go make iptables libseccomp-devel
+dnf install git go make iptables libseccomp-devel yq jq
 ```
 
 ### Install Rootlesskit

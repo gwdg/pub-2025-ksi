@@ -16,7 +16,7 @@ if [ ! -f "$1" ]; then
     exit 2
 fi
 
-# Ensure prerequisites ------------------------
+# Ensure prerequisites
 
 # check cgroups v2 enabled (Source: https://unix.stackexchange.com/a/480748/567139 )
 if [ "$(stat -fc %T /sys/fs/cgroup/)" = "cgroup2fs" ]; then

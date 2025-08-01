@@ -13,7 +13,7 @@ if [[ -z "$WORKLOAD_SCRIPT" || -z "$SHARE_MOUNT" ]]; then
   exit 1
 fi
 
-# Ensure prerequisites ------------------------
+# Ensure prerequisites
 
 # check cgroups v2 enabled (Source: https://unix.stackexchange.com/a/480748/567139 )
 if [ "$(stat -fc %T /sys/fs/cgroup/)" = "cgroup2fs" ]; then

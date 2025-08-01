@@ -89,7 +89,7 @@ trap cleanup SIGTERM # Termination
 trap cleanup SIGINT # CTRL + C
 
 echo "[Task ${CLUSTER_ID}] Creating KinD cluster: $CLUSTER_NAME"
-KIND_EXPERIMENTAL_PROVIDER=nerdctl kind create cluster --name "$CLUSTER_NAME" --image kindest/node:v1.29.0 --config kind-config-${CLUSTER_NAME}.yaml --wait 60s
+KIND_EXPERIMENTAL_PROVIDER=nerdctl kind create cluster --name "$CLUSTER_NAME" --image kindest/node:v1.33.2 --config kind-config-${CLUSTER_NAME}.yaml --wait 60s
 
 # Get the name of the control-plane container
 CONTROL_PLANE_CONTAINER="${CLUSTER_NAME}-control-plane"
